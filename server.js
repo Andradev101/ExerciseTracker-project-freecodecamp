@@ -49,7 +49,7 @@ const Exercise = mongoose.model('exercise', newExerciseSchema);
 
 app.post('/api/users', (req, res) =>{
   const user = new User({username: req.body.username});
-  //creating a new user with the request from the form on the body
+  //creating a new user with the request from the form on the bodya
   user.save(function (err, data) { //saving it [which assigns it an _id]
     if (err) return console.log(err);//if error return error
     res.json({//success
