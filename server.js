@@ -29,6 +29,7 @@ const newUserSchema = new Schema({
   	username: String
 })
 const User = mongoose.model('User', newUserSchema);
+
 const newExerciseSchema = new Schema({
   	description: {type:String, required:true},
   	duration: {type:Number, required:true},
@@ -117,12 +118,13 @@ app.get('/api/users/:_id/logs', (req, res) => {
 		.exec((err, data) =>{//find the user with that is
 		
 		Exercise.find({username: req.params._id},{'_id': 0, 'username': 0, '__v': 0},(err, exerciseLog) => {//find all exercise logs, still need to figure out how to push this data from the array
-			console.log(exerciseLog.length)
+			//console.log(exerciseLog.length)
 			if (err) console.log(err)
 			res.json({
 				_id: req.params._id,
 				username: data.username,
-				log:exerciseLog
+				log:exerciseLog,
+				count: exerciseLog.length
 			})//success
 
 		})
