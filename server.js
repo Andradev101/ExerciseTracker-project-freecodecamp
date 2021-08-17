@@ -26,20 +26,19 @@ db.once('open', function() {
 //db connected
 
 const newUserSchema = new Schema({
-  	username: String
+  username: String
 })
 const User = mongoose.model('User', newUserSchema);
 
 const newExerciseSchema = new Schema({
-  	description: {type:String, required:true},
-  	duration: {type:Number, required:true},
-  	date: { type: String, default: Date.now },
-  	username: {type: Schema.Types.ObjectId, ref: 'User', required: true},
+  description: {type:String, required:true},
+  duration: {type:Number, required:true},
+  date: { type: String, default: Date.now },
+  username: {type: Schema.Types.ObjectId, ref: 'User', required: true},
 });
 const Exercise = mongoose.model('exercise', newExerciseSchema);
 
 //ROUTES
-
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
@@ -111,24 +110,28 @@ app.post('/api/users/:_id/exercises', (req, res) =>{
 //Learning how to properly the populate function was a pain in the ass, got through thanks to an Indian youtube video, kudos to him, i had been 3 days stuck and lost my weekend, but it worth it.
 
 //TO DO BELOW
-app.get('/api/users/:_id/logs', (req, res) => {
-
+app.get('/api/users/:_id/logs?:limit', (req, res) => {
+	
+	let limit = parseInt(req.query.limit)
+	console.log(typeof limit)
+	
 	User.findOne({_id: req.params._id})
 		.populate('newExerciseSchema')
-		.exec((err, data) =>{//find the user with that is
-		
-		Exercise.find({username: req.params._id},{'_id': 0, 'username': 0, '__v': 0},(err, exerciseLog) => {//find all exercise logs, still need to figure out how to push this data from the array
-			//console.log(exerciseLog.length)
-			if (err) console.log(err)
-			res.json({
-				_id: req.params._id,
-				username: data.username,
-				log:exerciseLog,
-				count: exerciseLog.length
-			})//success
+		.exec((err, data) =>{//find the user with that specific id & exec()
 
+	Exercise.find({username: req.params._id})
+	.select({'_id': 0, 'username': 0, '__v': 0})
+	.limit(limit)
+	.exec (function(err, exerciseLog) {
+		if (err) console.log(err)
+		res.json({
+			_id: req.params._id,
+			username: data.username,
+			count: exerciseLog.length,
+			log:exerciseLog
 		})
-	})
+	})	//Exercise.find
+	})	//User.findOne	
 })
 
 //RESET DB
