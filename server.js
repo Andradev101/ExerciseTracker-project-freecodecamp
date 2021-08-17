@@ -30,11 +30,10 @@ const newUserSchema = new Schema({
 })
 const User = mongoose.model('User', newUserSchema);
 const newExerciseSchema = new Schema({
-		userId: {type:String},
   	description: {type:String, required:true},
   	duration: {type:Number, required:true},
-  	date: { type: Date, default: Date.now },
-  	username: {type: Schema.Types.ObjectId, ref: 'User'},
+  	date: { type: String, default: Date.now },
+  	username: {type: Schema.Types.ObjectId, ref: 'User', required: true},
 });
 const Exercise = mongoose.model('exercise', newExerciseSchema);
 
@@ -80,18 +79,19 @@ app.post('/api/users/:_id/exercises', (req, res) =>{
 		req.body.date = toDate(dateStr).toDateString();
 	}//date treatments
 
-  const exercise = new Exercise({
-		userId: req.params._id,
-		description: req.body.description,
-		duration: req.body.duration,
-		date: req.body.date
-	});//instancing new exercise
-
 	User.findOne({_id: req.params._id})
 		.populate('newExerciseSchema')
 		.sort({ field: 'asc' })
 		.exec((err, data) =>{
 		if (err) console.log(err)
+
+		//console.log(data)
+		const exercise = new Exercise({
+			username: data,
+			description: req.body.description,
+			duration: req.body.duration,
+			date: req.body.date
+		});//instancing new exercise
 
 		res.json({
 			_id: req.params._id,
@@ -100,26 +100,33 @@ app.post('/api/users/:_id/exercises', (req, res) =>{
 			duration: parseInt(req.body.duration),
 			description: req.body.description
 		})//success
-	})
-	exercise.save()
+		//console.log(data.username)
+		exercise.save(function(err,result){
+			if (err){console.log(err);}
+			else{console.log(result)}
+		})
+	})	
 })
 //Learning how to properly the populate function was a pain in the ass, got through thanks to an Indian youtube video, kudos to him, i had been 3 days stuck and lost my weekend, but it worth it.
 
 //TO DO BELOW
 app.get('/api/users/:_id/logs', (req, res) => {
-//I CAN GET THE USER ID
-//USE EXERCISE.FINDONE TOMORROW 	
+
 	User.findOne({_id: req.params._id})
 		.populate('newExerciseSchema')
-		.exec((err, data) =>{
-		if (err) console.log(err)
-		//console.log(data)
-		res.json({
-			_id: req.params._id,
-			username: data.username,
-			description: data.description
-		})//success
-	})	
+		.exec((err, data) =>{//find the user with that is
+		
+		Exercise.find({username: req.params._id},{'_id': 0, 'username': 0, '__v': 0},(err, exerciseLog) => {//find all exercise logs, still need to figure out how to push this data from the array
+			console.log(exerciseLog.length)
+			if (err) console.log(err)
+			res.json({
+				_id: req.params._id,
+				username: data.username,
+				log:exerciseLog
+			})//success
+
+		})
+	})
 })
 
 //RESET DB
